@@ -14,8 +14,10 @@ from flask import send_from_directory
 from flask import session
 
 
+
 app = Flask(__name__)
 app.secret_key = env.get('SECRET_KEY')
+print(env.get('AUTH0_CALLBACK_URL'))
 load_dotenv(path.join(path.dirname(__file__), ".env"))
 
 const = {
@@ -42,7 +44,7 @@ def requires_auth(f):
 @app.route('/')
 def index():
     print('callback')
-    print(session)
+    print(env.get('AUTH0_CALLBACK_URL'))
     return render_template('index.html', const=const)
 
 
