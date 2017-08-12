@@ -16,7 +16,7 @@ from flask import session
 
 app = Flask(__name__)
 app.secret_key = env.get('SECRET_KEY')
-load_dotenv(path.join(path.dirname(__file__), ".envl"))
+load_dotenv(path.join(path.dirname(__file__), ".env"))
 
 const = {
     'AUTH0_CALLBACK_URL': env.get('AUTH0_CALLBACK_URL'),
