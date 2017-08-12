@@ -12,7 +12,7 @@
         <script>
         var AUTH0_CLIENT_ID = '{{const.AUTH0_CLIENT_ID}}';
         var AUTH0_DOMAIN = '{{const.AUTH0_DOMAIN}}';
-        var AUTH0_CALLBACK_URL = '{{const.AUTH0_CALLBACK_URL if const.AUTH0_CALLBACK_URL else "http://localhost:5000/callback" }}';
+        var AUTH0_CALLBACK_URL = '{{const.AUTH0_CALLBACK_URL if const.AUTH0_CALLBACK_URL else "https://young-crag-60864.herokuapp.com/callback" }}';
         var API_AUDIENCE = '{{const.API_IDENTIFIER}}';
         </script>
         <script type="text/javascript" src="{{url_for('static', filename='app.js')}}"> </script>
