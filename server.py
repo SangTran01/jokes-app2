@@ -71,6 +71,13 @@ def callback_handling():
     return redirect('/dashboard')
 
 
+# @app.route('/logout')
+# def logout():
+#     session.clear()
+#     parsed_base_url = urlparse('https://young-crag-60864.herokuapp.com/callback')
+#     base_url = parsed_base_url.scheme + '://' + parsed_base_url.netloc
+#     return redirect('https://%s/v2/logout?returnTo=%s&client_id=%s' % ('app74725998.auth0.com', base_url, 'DfeTJOp4PyWvXj0yeS3HR8cpW1h0T5G2'))
+
 @app.route('/logout')
 def logout():
     session.clear()
