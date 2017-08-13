@@ -12,11 +12,15 @@ from flask import render_template
 from flask import request
 from flask import send_from_directory
 from flask import session
+from models import db
 
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/jokesapp'
 app.secret_key = env.get('SECRET_KEY', 'ThisIsASecretKey')
 load_dotenv(path.join(path.dirname(__file__), ".envl"))
+
+db.init_app(app)
 
 const = {
     'AUTH0_CALLBACK_URL': env.get('AUTH0_CALLBACK_URL'),
