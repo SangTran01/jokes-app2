@@ -1,0 +1,113 @@
+body {
+  font-family: "proxima-nova", sans-serif;
+}
+
+.header {
+  text-align: center;
+}
+
+.btn-items {
+  float: right;
+}
+
+.btn {
+  font-size: 140%;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 0;
+  background-color: #16214D;
+  color: white;
+}
+.btn:hover {
+  background-color: #44C7F4;
+}
+.btn:focus {
+  outline: none !important;
+}
+.btn.btn-lg {
+  padding: 20px 30px;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 100;
+}
+#logo img {
+  width: 300px;
+  margin-bottom: 60px;
+}
+.home-description {
+  font-weight: 100;
+  margin: 100px 0;
+}
+h2 {
+  margin-top: 30px;
+  margin-bottom: 40px;
+  font-size: 200%;
+}
+label {
+  font-size: 100%;
+  font-weight: 300;
+}
+.btn-next {
+  margin-top: 30px;
+}
+.answer {
+  width: 70%;
+  margin: auto;
+  text-align: left;
+  padding-left: 10%;
+  margin-bottom: 20px;
+}
+.login-page .login-box {
+  padding: 100px 0;
+}
+
+.btn-login {
+  margin: 5px 10px;
+}
+
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+h3 {
+  font: bold 20px/1.5 Helvetica, Verdana, sans-serif;
+}
+
+.list-user-img {
+  float: left;
+  margin: 0px 15px 30px 0px;
+  border-radius: 50px;
+}
+
+li p {
+  font: 200 12px/1.5 Georgia, Times New Roman, serif;
+}
+
+li {
+  padding: 10px;
+  overflow: auto;
+}
+
+li:hover {
+  background: #eee;
+  cursor: pointer;
+}
+
+.like {
+  font-size: 20px;
+  color:green;
+  margin-right: 15px
+}
+
+.dislike {
+  font-size: 20px;
+  color:red;
+}
+
+.error-message {
+  color: #db4437;
+}

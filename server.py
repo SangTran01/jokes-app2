@@ -1,4 +1,5 @@
 import json
+import requests
 
 from auth0.v3.authentication import GetToken
 from auth0.v3.authentication import Users
@@ -12,7 +13,8 @@ from flask import render_template
 from flask import request
 from flask import send_from_directory
 from flask import session
-from models import db
+from models import db, User, Joke
+from forms import AddJokeForm
 
 
 app = Flask(__name__)
@@ -37,27 +39,59 @@ def requires_auth(f):
             # Redirect to Login page here
             return redirect('/')
         return f(*args, **kwargs)
-
     return decorated
 
 
 @app.route('/')
 def index():
-    print('callback')
-    print(env.get('AUTH0_CALLBACK_URL'))
-    return render_template('index.html', const=const)
+    jokes = json.loads(requests.get(
+        "http://api.icndb.com/jokes/random/10").text)['value']
+    return render_template('index.html', const=const, jokes=jokes)
 
 
 @app.route("/dashboard")
 @requires_auth
 def dashboard():
-    return render_template('dashboard.html', user=session['profile'], const=const)
+    jokes = json.loads(requests.get(
+        "http://api.icndb.com/jokes/random/10").text)['value']
+    return render_template('dashboard.html', user=session['profile'], const=const, jokes=jokes)
+
+
+@app.route("/addjoke", methods=['GET', 'POST'])
+@requires_auth
+def addjoke():
+    form = AddJokeForm()
+    if request.method == 'POST':
+        if form.validate() == False:
+            return render_template('add_joke.html', user=session['profile'], const=const, form=form)
+        else:
+            userid = session['profile']["sub"][6:len( session['profile']["sub"] )]
+            joke = form.joke.data
+            print('YOUR JOKE')
+            print(joke)
+            print('USER')
+            print(userid)
+            return 'success'
+            # newjoke = Joke()
+    elif request.method == 'GET':
+        return render_template('add_joke.html', user=session['profile'], const=const, form=form)
+
+
+@app.route("/myjokes")
+@requires_auth
+def myjokes():
+    return render_template('my_jokes.html', user=session['profile'], const=const)
+
+
+@app.route("/editjoke/:jokeid")
+@requires_auth
+def editjoke():
+    return render_template('edit_joke.html', user=session['profile'], const=const)
 
 
 # Here we're using the /callback route.
 @app.route('/callback')
 def callback_handling():
-    print('HEHEHEHEEHEHEH')
     code = request.args.get('code')
     get_token = GetToken(const['AUTH0_DOMAIN'])
     auth0_users = Users(const['AUTH0_DOMAIN'])
@@ -65,6 +99,19 @@ def callback_handling():
                                          const['AUTH0_CLIENT_SECRET'], code, const['AUTH0_CALLBACK_URL'])
     user_info = auth0_users.userinfo(token['access_token'])
     session['profile'] = json.loads(user_info)
+    print('USER INFO')
+    # check if user in db
+    user = User.query.filter_by(email=session['profile']['email']).first()
+    print('CHECK')
+    if user is None:
+        print('new user being added to db')
+        userid = session['profile']["sub"][6:len( session['profile']["sub"] )]
+        new_user = User(userid, session['profile']['email'], session['profile'][
+                        'nickname'], session['profile']['picture'])
+        db.session.add(new_user)
+        db.session.commit()
+    else:
+        print('old user')
     return redirect('/dashboard')
 
 

@@ -1,0 +1,35 @@
+<html>
+    <head>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
+        <script src="https://cdn.auth0.com/js/auth0/8.6.0/auth0.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- font awesome from BootstrapCDN -->
+        <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/app.css')}}">
+        <script>
+        var AUTH0_CLIENT_ID = '{{const.AUTH0_CLIENT_ID}}';
+        var AUTH0_DOMAIN = '{{const.AUTH0_DOMAIN}}';
+        var AUTH0_CALLBACK_URL = '{{const.AUTH0_CALLBACK_URL if const.AUTH0_CALLBACK_URL else "https://young-crag-60864.herokuapp.com/callback" }}';
+        </script>
+        <script type="text/javascript" src="{{url_for('static', filename='js/app.js')}}"> </script>
+    </head>
+    <body class="home">
+        <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <a class="navbar-brand" href="#">Jokes App</a>
+            </div>
+            <div id="myNavbar">
+              <ul class="nav navbar-nav navbar-right">
+                <a class="btn btn-primary btn-login">SignIn</a>
+              </ul>
+            </div>
+          </div>
+        </nav>
+        <div class="container">
+        {% block content %}
+        {% endblock %}
+        </div>
+    </body>
+</html>

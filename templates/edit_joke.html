@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="login-page clearfix">
+  <div class="logged-in-box auth0-box logged-in">
+    <img class="avatar" src="{{user['picture']}}"/>
+    <h2>Welcome {{user['nickname']}}</h2>
+    <a href="{{url_for('logout')}}" class="btn btn-primary btn-block">Logout</a>
+    <a href="#" class="btn btn-primary">Your jokes</a>
+    <h2>Latest Jokes</h2>
+    <form>
+        <p>Edit form here</p>
+    </form>
+    <a href="#" class="btn btn-primary">Delete</a>
+  </div>
+</div>
+{% endblock %}
