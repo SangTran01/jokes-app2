@@ -4,17 +4,17 @@
 <div class="login-page clearfix">
     <div class="login-box auth0-box before">
         <div class="header">
-        	<img src="https://i.cloudup.com/StzWWrY34s.png" />
         	<h3>Jokes App</h3>
         	<p>A bunch of jokes here</p>
         </div>
         <ul>
-        	{% for joke in jokes %}
-        	<li>
-                <img class="list-user-img" src="http://via.placeholder.com/100x100" >
+          {% for joke in jokes %}
+          <li>
+                <img class="list-user-img" src="{{joke['image']}}" >
                 <p>{{joke['joke']}}</p>
-                <h4>By: The Grasslands</h4>
-                <h4>0</h4>
+                <h4>By: {{joke['nickname']}}</h4>
+                <h4>Rating: {{joke['total']}}</h4>
+                <p>Posted on: {{joke['posting_date']}}</p>
                 <a class="like" href=""><i class="fa fa-thumbs-o-up" aria-hidden="true"></i></a>
                 <a class="dislike" href=""><i class="fa fa-thumbs-o-down" aria-hidden="true"></i></a>
           </li>

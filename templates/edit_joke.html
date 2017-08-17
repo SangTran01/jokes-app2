@@ -5,13 +5,26 @@
   <div class="logged-in-box auth0-box logged-in">
     <img class="avatar" src="{{user['picture']}}"/>
     <h2>Welcome {{user['nickname']}}</h2>
-    <a href="{{url_for('logout')}}" class="btn btn-primary btn-block">Logout</a>
+    <a href="{{url_for('logout')}}" class="btn btn-primary">Logout</a>
+    <a href="{{url_for('dashboard')}}" class="btn btn-primary">Back to Jokes</a>
     <a href="#" class="btn btn-primary">Your jokes</a>
-    <h2>Latest Jokes</h2>
-    <form>
-        <p>Edit form here</p>
+    <h2>Edit Joke</h2>
+    <form method="POST" action="{{url_for('editjoke', jokeid=joke.jokeid)}}">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-group">
+          {% if form.joke.errors %}
+          {% for error in form.joke.errors %}
+          <h4 class="error-message">{{ error }}</h4>
+          {% endfor %}
+          {% endif %}
+
+          {{form.joke(cols="50", rows="8", placeholder=joke.joke)}}
+        </div>
+
+        {{ form.update(class="btnUpdate") }}
     </form>
-    <a href="#" class="btn btn-primary">Delete</a>
+    <a href="{{url_for('deletejoke', jokeid=joke['jokeid'])}}" class="btnDelete">Delete</a>
   </div>
 </div>
 {% endblock %}

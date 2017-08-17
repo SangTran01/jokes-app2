@@ -10,11 +10,13 @@ from functools import wraps
 from flask import Flask
 from flask import redirect
 from flask import render_template
+from flask import url_for
 from flask import request
 from flask import send_from_directory
 from flask import session
-from models import db, User, Joke
-from forms import AddJokeForm
+from models import db, User, Joke, Rating
+from forms import AddJokeForm, EditJokeForm
+from sqlalchemy.sql import text
 
 
 app = Flask(__name__)
@@ -42,19 +44,49 @@ def requires_auth(f):
     return decorated
 
 
+def get_or_create(session, model, **kwargs):
+    instance = db.session.query(model).filter_by(**kwargs).first()
+    if instance:
+        print('got one')
+        return True
+    else:
+        print('no got')
+        return False
+
+
 @app.route('/')
 def index():
-    jokes = json.loads(requests.get(
-        "http://api.icndb.com/jokes/random/10").text)['value']
+    # get rating
+    jokes = db.engine.execute(
+        text('select users.nickname, users.image, jokes.jokeid, ' +
+             'jokes.joke, jokes.posting_date, jokes.userid, SUM(ratings.rating) AS "total" ' +
+             'from users inner join jokes on users.userid = jokes.userid inner join ratings on jokes.jokeid = ratings.jokeid ' +
+             'group by users.nickname, users.image, jokes.jokeid ' +
+             'order by "total" DESC'))
     return render_template('index.html', const=const, jokes=jokes)
 
 
 @app.route("/dashboard")
 @requires_auth
 def dashboard():
-    jokes = json.loads(requests.get(
-        "http://api.icndb.com/jokes/random/10").text)['value']
-    return render_template('dashboard.html', user=session['profile'], const=const, jokes=jokes)
+    # get rating
+    userid = session['profile']["sub"]
+    userid = userid[userid.index('|') + 1:len(userid)]
+    ratings = Rating.query.all()
+
+    if len(ratings) == 0:
+        jokes = db.engine.execute(
+        text('select users.nickname, users.image, jokes.jokeid, jokes.joke, ' +
+             'jokes.posting_date, jokes.userid ' +
+             'from users inner join jokes on users.userid = jokes.userid'))
+    else:
+        jokes = db.engine.execute(
+        text('select users.nickname, users.image, jokes.jokeid, ' +
+             'jokes.joke, jokes.posting_date, jokes.userid, SUM(ratings.rating) AS "total" ' +
+             'from users inner join jokes on users.userid = jokes.userid inner join ratings on jokes.jokeid = ratings.jokeid ' +
+             'group by users.nickname, users.image, jokes.jokeid ' +
+             'order by "total" DESC'))
+    return render_template('dashboard.html', user=session['profile'], const=const, jokes=jokes, userid=userid)
 
 
 @app.route("/addjoke", methods=['GET', 'POST'])
@@ -65,14 +97,14 @@ def addjoke():
         if form.validate() == False:
             return render_template('add_joke.html', user=session['profile'], const=const, form=form)
         else:
-            userid = session['profile']["sub"][6:len( session['profile']["sub"] )]
+            userid = session['profile']["sub"]
+            userid = userid[userid.index('|') + 1:len(userid)]
             joke = form.joke.data
-            print('YOUR JOKE')
-            print(joke)
-            print('USER')
-            print(userid)
-            return 'success'
-            # newjoke = Joke()
+            # create joke and rating for that joke
+            new_joke = Joke(joke, userid)
+            db.session.add(new_joke)
+            db.session.commit()
+            return redirect(url_for('dashboard'))
     elif request.method == 'GET':
         return render_template('add_joke.html', user=session['profile'], const=const, form=form)
 
@@ -83,11 +115,69 @@ def myjokes():
     return render_template('my_jokes.html', user=session['profile'], const=const)
 
 
-@app.route("/editjoke/:jokeid")
+@app.route("/editjoke/<jokeid>", methods=['GET', 'POST'])
 @requires_auth
-def editjoke():
-    return render_template('edit_joke.html', user=session['profile'], const=const)
+def editjoke(jokeid):
+    userid = session['profile']["sub"]
+    userid = userid[userid.index('|') + 1:len(userid)]
+    # check your ID matches the joke's userid to be able to EDIT
+    # get joke object with jokeid
+    joke = Joke.query.filter_by(jokeid=jokeid).first()
+    if userid != joke.userid:
+        return render_template('error.html', user=session['profile'], const=const)
+    form = EditJokeForm()
+    if request.method == 'POST':
+        if form.validate() == False:
+            return render_template('edit_joke.html', user=session['profile'], const=const, form=form, joke=joke)
+        else:
+            # get joke object and update
+            updated_joke = form.joke.data
+            joke.joke = updated_joke
+            db.session.commit()
+            return redirect(url_for('dashboard'))
+    elif request.method == 'GET':
+        return render_template('edit_joke.html', user=session['profile'], const=const, form=form, joke=joke)
 
+
+@app.route("/deletejoke/<jokeid>")
+@requires_auth
+def deletejoke(jokeid):
+    userid = session['profile']["sub"]
+    userid = userid[userid.index('|') + 1:len(userid)]
+    # check your ID matches the joke's userid to be able to EDIT
+    # get joke object with jokeid
+    joke = Joke.query.filter_by(jokeid=jokeid).first()
+    # print(joke.jokeid)
+    if userid != joke.userid:
+        return render_template('error.html', user=session['profile'], const=const)
+    else:
+        Joke.query.filter_by(jokeid=jokeid).delete()
+        db.session.commit()
+        return redirect(url_for('dashboard'))
+
+
+@app.route("/editrating/<jokeid>/<rating>")
+@requires_auth
+def editrating(jokeid, rating):
+    userid = session['profile']["sub"]
+    userid = userid[userid.index('|') + 1:len(userid)]
+    joke = Joke.query.filter_by(jokeid=jokeid).first()
+    print('what i clicked is %s' % rating)
+    
+    if rating == '1':
+        print('clicked 1')
+        hasVoted = get_or_create(session, Rating, userid=userid)
+    elif rating == '-1':
+        print('clicked -1')
+        hasVoted = get_or_create(session, Rating, userid=userid)
+    print(hasVoted)
+    if hasVoted == True:
+        return "sorry you already voted"
+    else:
+        new_rating = Rating(int(rating), jokeid, userid)
+        db.session.add(new_rating)
+        db.session.commit()
+        return redirect('/dashboard')
 
 # Here we're using the /callback route.
 @app.route('/callback')
@@ -105,7 +195,8 @@ def callback_handling():
     print('CHECK')
     if user is None:
         print('new user being added to db')
-        userid = session['profile']["sub"][6:len( session['profile']["sub"] )]
+        userid = session['profile']["sub"]
+        userid = userid[userid.index('|') + 1:len(userid)]
         new_user = User(userid, session['profile']['email'], session['profile'][
                         'nickname'], session['profile']['picture'])
         db.session.add(new_user)
@@ -121,6 +212,7 @@ def logout():
     parsed_base_url = urlparse(const['AUTH0_CALLBACK_URL'])
     base_url = parsed_base_url.scheme + '://' + parsed_base_url.netloc
     return redirect('https://%s/v2/logout?returnTo=%s&client_id=%s' % (const['AUTH0_DOMAIN'], base_url, const['AUTH0_CLIENT_ID']))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

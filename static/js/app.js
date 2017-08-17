@@ -19,4 +19,10 @@ $(document).ready(function() {
       e.preventDefault();
       window.location.href = '/logout';
     })
+
+
+    // $('.like').click(function(e) {
+    //   e.preventDefault();
+    //   console.log('OKOKOK');
+    // })
 });
