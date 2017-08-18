@@ -20,11 +20,11 @@ from sqlalchemy.sql import text
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/jokesapp'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://bhtkbijjrjlznn:9a84b5af24251bc6838c865b734e802679d032c730a28fd1cc44b1b285bad306@ec2-23-23-221-255.compute-1.amazonaws.com:5432/d97jfnk18117a9'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/jokesapp'
+# load_dotenv(path.join(path.dirname(__file__), ".envl"))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://bhtkbijjrjlznn:9a84b5af24251bc6838c865b734e802679d032c730a28fd1cc44b1b285bad306@ec2-23-23-221-255.compute-1.amazonaws.com:5432/d97jfnk18117a9'
+load_dotenv(path.join(path.dirname(__file__), ".env"))
 app.secret_key = env.get('SECRET_KEY', 'ThisIsASecretKey')
-# load_dotenv(path.join(path.dirname(__file__), ".env"))
-load_dotenv(path.join(path.dirname(__file__), ".envl"))
 db.init_app(app)
 
 const = {
