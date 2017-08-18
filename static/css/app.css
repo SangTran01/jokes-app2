@@ -61,7 +61,7 @@ label {
   margin-bottom: 20px;
 }
 .login-page .login-box {
-  padding: 100px 0;
+  padding: 50px 0;
 }
 
 .btn-login {
@@ -146,10 +146,6 @@ label {
   top:1px;
 }
 
-
-
-
-
 ul {
   list-style-type: none;
   padding-left: 0;
@@ -165,6 +161,15 @@ h3 {
   float: left;
   margin: 0px 15px 30px 0px;
   border-radius: 80px;
+}
+
+.list-item {
+  color: #000;
+}
+
+.list-item:hover {
+  color: #000;
+  text-decoration: none;
 }
 
 li p {
@@ -203,4 +208,9 @@ li:hover {
 .icon-error {
   color: red;
   text-align: center;
+}
+
+#chart-title {
+  display: inline-block;
+  margin-right: 20px;
 }

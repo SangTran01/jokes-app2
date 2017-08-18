@@ -89,6 +89,13 @@ def dashboard():
              'order by "total" DESC'))
     return render_template('dashboard.html', user=session['profile'], const=const, jokes=jokes, userid=userid)
 
+@app.route('/getchart/<jokeid>')
+def getchart(jokeid):
+    joke = Joke.query.filter_by(jokeid=jokeid).first()
+    likes = Rating.query.filter_by(jokeid=jokeid, rating=1).count()
+    dislikes =  Rating.query.filter_by(jokeid=jokeid, rating=-1).count()
+    return render_template('chart.html', const=const, joke=joke, likes=likes, dislikes=dislikes)
+
 
 @app.route("/addjoke", methods=['GET', 'POST'])
 @requires_auth

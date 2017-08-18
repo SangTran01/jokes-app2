@@ -12,33 +12,35 @@
     <ul>
         {% for joke in jokes %}
         <li>
-        <img class="list-user-img" src="{{joke['image']}}" >
-            <p>{{joke['joke']}}</p>
-            <h4>By: {{joke['nickname']}}</h4>
-            
-            {% if joke['total'] %}
-                <h4>Rating: {{joke['total']}}</h4>
-            {% else %}
-                <h4>Rating: 0</h4>
-            {% endif %}
+            <a class="list-item" href="{{url_for('getchart', jokeid=joke['jokeid'])}}">
+                <img class="list-user-img" src="{{joke['image']}}" >
+                <p>{{joke['joke']}}</p>
+                <h4>By: {{joke['nickname']}}</h4>
+                
+                {% if joke['total'] %}
+                    <h4>Rating: {{joke['total']}}</h4>
+                {% else %}
+                    <h4>Rating: 0</h4>
+                {% endif %}
 
-            <p>Posted on: {{joke['posting_date']}}</p>
-            <a 
-                class="like" 
-                href="{{url_for('editrating', jokeid=joke['jokeid'], rating=1)}}">
-                <i class="fa fa-thumbs-o-up" aria-hidden="true"></i></a>
-            <a 
-                class="dislike" 
-                href="{{url_for('editrating', jokeid=joke['jokeid'], rating=-1)}}">
-                <i class="fa fa-thumbs-o-down" aria-hidden="true"></i></a>
-            {% if userid == joke['userid'] %}
-            <div class="btn-items">
-                <a href="{{url_for('editjoke', jokeid=joke['jokeid'])}}" class="btnEdit">Edit</a>
-            </div>
-            <div class="btn-items">
-                <a href="{{url_for('deletejoke', jokeid=joke['jokeid'])}}" class="btnDelete">Delete</a>
-            </div>
-            {% endif %}
+                <p>Posted on: {{joke['posting_date']}}</p>
+                <a 
+                    class="like" 
+                    href="{{url_for('editrating', jokeid=joke['jokeid'], rating=1)}}">
+                    <i class="fa fa-thumbs-o-up" aria-hidden="true"></i></a>
+                <a 
+                    class="dislike" 
+                    href="{{url_for('editrating', jokeid=joke['jokeid'], rating=-1)}}">
+                    <i class="fa fa-thumbs-o-down" aria-hidden="true"></i></a>
+                {% if userid == joke['userid'] %}
+                <div class="btn-items">
+                    <a href="{{url_for('editjoke', jokeid=joke['jokeid'])}}" class="btnEdit">Edit</a>
+                </div>
+                <div class="btn-items">
+                    <a href="{{url_for('deletejoke', jokeid=joke['jokeid'])}}" class="btnDelete">Delete</a>
+                </div>
+                {% endif %}
+            </a>
         </li>
         {% endfor %}
     </ul>
