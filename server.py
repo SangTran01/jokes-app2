@@ -20,10 +20,11 @@ from sqlalchemy.sql import text
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://bhtkbijjrjlznn:9a84b5af24251bc6838c865b734e802679d032c730a28fd1cc44b1b285bad306@ec2-23-23-221-255.compute-1.amazonaws.com:5432/d97jfnk18117a9'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/jokesapp'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://bhtkbijjrjlznn:9a84b5af24251bc6838c865b734e802679d032c730a28fd1cc44b1b285bad306@ec2-23-23-221-255.compute-1.amazonaws.com:5432/d97jfnk18117a9'
 app.secret_key = env.get('SECRET_KEY', 'ThisIsASecretKey')
-load_dotenv(path.join(path.dirname(__file__), ".env"))
-
+# load_dotenv(path.join(path.dirname(__file__), ".env"))
+load_dotenv(path.join(path.dirname(__file__), ".envl"))
 db.init_app(app)
 
 const = {
@@ -58,10 +59,10 @@ def get_or_create(session, model, **kwargs):
 def index():
     # get rating
     jokes = db.engine.execute(
-        text('select users.nickname, users.image, jokes.jokeid, ' +
-             'jokes.joke, jokes.posting_date, jokes.userid, SUM(ratings.rating) AS "total" ' +
-             'from users inner join jokes on users.userid = jokes.userid inner join ratings on jokes.jokeid = ratings.jokeid ' +
-             'group by users.nickname, users.image, jokes.jokeid ' +
+        text('select users.nickname, users.image, jokes.userid, jokes.joke, ' +
+             'jokes.jokeid, jokes.posting_date, SUM(ratings.rating) AS "total" ' +
+             'from users join jokes on users.userid = jokes.userid left join ratings on jokes.jokeid = ratings.jokeid ' +
+             'group by users.nickname, users.image, jokes.userid, jokes.joke, jokes.jokeid ' +
              'order by "total" DESC'))
     return render_template('index.html', const=const, jokes=jokes)
 
@@ -81,10 +82,10 @@ def dashboard():
              'from users inner join jokes on users.userid = jokes.userid'))
     else:
         jokes = db.engine.execute(
-        text('select users.nickname, users.image, jokes.jokeid, ' +
-             'jokes.joke, jokes.posting_date, jokes.userid, SUM(ratings.rating) AS "total" ' +
-             'from users inner join jokes on users.userid = jokes.userid inner join ratings on jokes.jokeid = ratings.jokeid ' +
-             'group by users.nickname, users.image, jokes.jokeid ' +
+        text('select users.nickname, users.image, jokes.userid, jokes.joke, ' +
+             'jokes.jokeid, jokes.posting_date, SUM(ratings.rating) AS "total" ' +
+             'from users join jokes on users.userid = jokes.userid left join ratings on jokes.jokeid = ratings.jokeid ' +
+             'group by users.nickname, users.image, jokes.userid, jokes.joke, jokes.jokeid ' +
              'order by "total" DESC'))
     return render_template('dashboard.html', user=session['profile'], const=const, jokes=jokes, userid=userid)
 
@@ -112,7 +113,26 @@ def addjoke():
 @app.route("/myjokes")
 @requires_auth
 def myjokes():
-    return render_template('my_jokes.html', user=session['profile'], const=const)
+    # get rating
+    userid = session['profile']["sub"]
+    userid = userid[userid.index('|') + 1:len(userid)]
+    ratings = Rating.query.all()
+    strUserid = str(userid)
+    if len(ratings) == 0:
+        jokes = db.engine.execute(
+        text("select users.nickname, users.image, users.email, jokes.jokeid, jokes.joke, " +
+             "jokes.posting_date, jokes.userid " +
+             "from users inner join jokes on users.userid = jokes.userid " + 
+             "where jokes.userid = '%s'" % userid))
+    else:
+        jokes = db.engine.execute(
+        text("select users.nickname, users.image, jokes.userid, jokes.joke, " +
+             "jokes.jokeid, jokes.posting_date, SUM(ratings.rating) AS " + "Total" + " " +
+             "from users join jokes on users.userid = jokes.userid left join ratings on jokes.jokeid = ratings.jokeid " +
+             "where jokes.userid = '%s'" % userid +
+             "group by users.nickname, users.image, jokes.userid, jokes.joke, jokes.jokeid " +
+             "order by " + "Total" + " DESC"))
+    return render_template('my_jokes.html', user=session['profile'], const=const, jokes=jokes, userid=userid)
 
 
 @app.route("/editjoke/<jokeid>", methods=['GET', 'POST'])
@@ -161,23 +181,24 @@ def deletejoke(jokeid):
 def editrating(jokeid, rating):
     userid = session['profile']["sub"]
     userid = userid[userid.index('|') + 1:len(userid)]
-    joke = Joke.query.filter_by(jokeid=jokeid).first()
+    rows = Rating.query.filter_by(jokeid=jokeid, userid=userid).count()
+    print(rows)
     print('what i clicked is %s' % rating)
-    
-    if rating == '1':
-        print('clicked 1')
-        hasVoted = get_or_create(session, Rating, userid=userid)
-    elif rating == '-1':
-        print('clicked -1')
-        hasVoted = get_or_create(session, Rating, userid=userid)
-    print(hasVoted)
-    if hasVoted == True:
-        return "sorry you already voted"
-    else:
-        new_rating = Rating(int(rating), jokeid, userid)
-        db.session.add(new_rating)
-        db.session.commit()
+
+    if rows == 0:
+        if rating == '1':
+            print('clicked 1')
+            new_rating = Rating(int(rating), jokeid, userid)
+            db.session.add(new_rating)
+            db.session.commit()
+        elif rating == '-1':
+            print('clicked -1')
+            new_rating = Rating(int(rating), jokeid, userid)
+            db.session.add(new_rating)
+            db.session.commit()
         return redirect('/dashboard')
+    else:
+        return render_template('error_voted.html', user=session['profile'], const=const)
 
 # Here we're using the /callback route.
 @app.route('/callback')
